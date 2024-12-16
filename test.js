@@ -1,17 +1,58 @@
 import dotenv from 'dotenv';
 import Exa from 'exa-js';
 import fs from 'fs';
+import OpenAI from "openai";
 
 dotenv.config();
 
 const exa = new Exa(process.env.EXA_API_KEY);
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+async function processWithChatGPT(input) {
+    const messages = [
+        { role: "system", content: "You are an assistant that categorizes news articles." },
+        { role: "user", content: `Based on the following news articles, filter and categorize them according to the criteria:
+        - Useful for developers
+        - Relevant for business owners or work professionals
+        - Categorize as developer-related vs consumer-related
+        - Must be available to use (not on a waitlist or coming soon)
+        - Exclude repeated updates already included.
+
+        Input articles:
+        ${JSON.stringify(input)}
+
+        Provide the filtered and categorized results:` }
+    ];
+
+    try {
+        const response = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: messages,
+            max_tokens: 16384,
+            temperature: 0.7
+        });
+
+        const rawOutput = response.choices?.[0]?.message?.content?.trim();
+        console.log("Raw output from ChatGPT:", rawOutput);
+
+        try {
+            return JSON.parse(rawOutput);
+        } catch (parseError) {
+            console.error("Invalid JSON format. Returning raw text instead.");
+            return rawOutput;
+        }
+    } catch (error) {
+        console.error("Error communicating with ChatGPT:", error);
+        return [];
+    }
+}
 
 async function fullSearch() {
   try {
     const result = await exa.searchAndContents("Latest AI updates released today", {
       type: "neural",
       useAutoprompt: true,
-      numResults: 30,
+      numResults: 5,
       text: true,
       summary: true,
     });
@@ -27,7 +68,7 @@ async function domainSearch() {
     const result = await exa.searchAndContents("Latest AI updates released today", {
       type: "neural",
       useAutoprompt: true,
-      numResults: 30,
+      numResults: 5,
       text: true,
       summary: true,
       includeDomains: ["theverge.com", "techcrunch.com", "hackeread.com", "dev.to"],
@@ -44,7 +85,7 @@ async function newsSearch() {
     const result = await exa.searchAndContents("Latest AI updates released today", {
       type: "neural",
       useAutoprompt: true,
-      numResults: 30,
+      numResults: 5,
       text: true,
       summary: true,
       excludeDomains: ["theverge.com", "techcrunch.com", "hackeread.com", "dev.to"],
@@ -62,7 +103,7 @@ async function tweetSearch() {
     const result = await exa.searchAndContents("Latest AI updates released today", {
       type: "neural",
       useAutoprompt: true,
-      numResults: 30,
+      numResults: 5,
       text: true,
       summary: true,
       excludeDomains: ["theverge.com", "techcrunch.com", "hackeread.com", "dev.to"],
@@ -80,7 +121,7 @@ async function blogpostSearch() {
     const result = await exa.searchAndContents("Latest AI updates released today", {
       type: "neural",
       useAutoprompt: true,
-      numResults: 30,
+      numResults: 5,
       text: true,
       summary: true,
       excludeDomains: ["theverge.com", "techcrunch.com", "hackeread.com", "dev.to"],
@@ -93,84 +134,85 @@ async function blogpostSearch() {
   }
 }
 
-async function getUniqueResults() {
-  try {
-    const [results1, results2, results3, results4, results5] = await Promise.all([
-      fullSearch(),
-      domainSearch(),
-      newsSearch(),
-      tweetSearch(),
-      blogpostSearch(),
-    ]);
+async function addResultsToMap(results, uniqueResultsMap, duplicates) {
+    if (!Array.isArray(results)) {
+        console.error("Invalid results format:", results);
+        return;
+    }
 
-    const uniqueResultsMap = new Map();
-    const duplicates = [];
-
-    const addResultsToMap = (results) => {
-      results.forEach((result) => {
+    results.forEach((result) => {
         if (uniqueResultsMap.has(result.url)) {
-          duplicates.push(result);
+            duplicates.push(result);
         } else {
-          uniqueResultsMap.set(result.url, result);
+            uniqueResultsMap.set(result.url, result);
         }
-      });
-    };
-
-    addResultsToMap(results1);
-    addResultsToMap(results2);
-    addResultsToMap(results3);
-    addResultsToMap(results4);
-    addResultsToMap(results5);
-
-    const uniqueResults = Array.from(uniqueResultsMap.values());
-
-    await fs.promises.writeFile(
-      'unique_results.json',
-      JSON.stringify(uniqueResults, null, 2),
-      'utf-8'
-    );
-    await fs.promises.writeFile(
-      'duplicates.json',
-      JSON.stringify(duplicates, null, 2),
-      'utf-8'
-    );
-
-    console.log(`Unique results have been saved to 'unique_results.json'`);
-    console.log(`Duplicate results have been saved to 'duplicates.json'`);
-    console.log(`Total duplicate results evicted: ${duplicates.length}`);
-
-    return uniqueResults;
-  } catch (error) {
-    console.error("Error in getUniqueResults:", error);
-    throw error;
-  }
+    });
 }
 
-getUniqueResults();
+async function getUniqueResults() {
+    try {
+        const [results1, results2, results3, results4, results5] = await Promise.all([
+            fullSearch(),
+            domainSearch(),
+            newsSearch(),
+            tweetSearch(),
+            blogpostSearch(),
+        ]);
 
+        const uniqueResultsMap = new Map();
+        const duplicates = [];
 
+        await Promise.all([
+            addResultsToMap(results1, uniqueResultsMap, duplicates),
+            addResultsToMap(results2, uniqueResultsMap, duplicates),
+            addResultsToMap(results3, uniqueResultsMap, duplicates),
+            addResultsToMap(results4, uniqueResultsMap, duplicates),
+            addResultsToMap(results5, uniqueResultsMap, duplicates),
+        ]);
 
+        const uniqueResults = Array.from(uniqueResultsMap.values());
 
-/* Based on the jsson provided please remove the redundant or the unrelated results. Below given is the 
-  critersias to choose the results.
-  
-  - the resu;s should be related to AI updates or tools.
-  - the updates or tools should be useful for business owners and developers who are looking for AI tools and updates.
-  - the results should be relevant to the AI field.
-  
-  Based on the criteria given i also need  you to redifine the information to a json schema provided below:
-  results = [
-    {
-      "url": "https://www.example.com/article1",(can be taken from the previous json)
-      "title of update": "Article 1", (can be used from the previous josn)
-      "headline of teh update": TAke the healdine of teh update from the content
-      "summary": "Break down the summary from content into three bullet points", (can be taken from the previous json)
-      "developer/non developer": based on the provided context carefully decide and label them as developer or non developer
-      "pricing" : based on the context provided find thr pricing for the update/tool
-      "helpful for work professionals" : based on the context provided find if the update/tool is helpful for work professionals
-      "availability" : based on the context provided find the availability of the update/tool (waitlist , beta , public)
-]
-** Note that u have to refer only to the data provided and not make up or use up information from you memory. Please be concise and detailed 
-** Everytime you select or deselect an update make sure to justify the decision and explain it. Then please reevaluavte based on the justification before making the final decison
+        await fs.promises.writeFile('unique_results.json', JSON.stringify(uniqueResults, null, 2), 'utf-8');
+        await fs.promises.writeFile('duplicates.json', JSON.stringify(duplicates, null, 2), 'utf-8');
 
-*/
+        console.log(`Unique results saved to 'unique_results.json'. Duplicates saved to 'duplicates.json'. Total duplicates: ${duplicates.length}`);
+        return uniqueResults;
+    } catch (error) {
+        console.error("Error in getUniqueResults:", error);
+        throw error;
+    }
+}
+
+async function processFilteredNews(filePath = 'filtered_news.json') {
+    try {
+        if (!fs.existsSync(filePath)) {
+            console.error(`File ${filePath} does not exist.`);
+            return;
+        }
+
+        const fileContent = await fs.promises.readFile(filePath, 'utf-8');
+        const parsedContent = JSON.parse(fileContent);
+
+        const processedResults = await processWithChatGPT(parsedContent);
+        console.log("Processed results with ChatGPT:", JSON.stringify(processedResults, null, 2));
+
+        await fs.promises.writeFile('processed_results.json', JSON.stringify(processedResults, null, 2), 'utf-8');
+        console.log("Processed results saved to 'processed_results.json'.");
+    } catch (error) {
+        console.error("Error processing filtered news:", error);
+    }
+}
+
+(async function () {
+    try {
+        const uniqueResults = await getUniqueResults();
+        const filteredResults = await processWithChatGPT(uniqueResults);
+
+        await fs.promises.writeFile('filtered_news.json', JSON.stringify(filteredResults, null, 2), 'utf-8');
+        console.log("Filtered news saved to 'filtered_news.json'.");
+
+        await processFilteredNews();
+    } catch (error) {
+        console.error("Error in the pipeline:", error);
+    }
+})();
