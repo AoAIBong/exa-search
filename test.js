@@ -47,7 +47,7 @@ async function newsSearch() {
       numResults: 30,
       text: true,
       summary: true,
-      includeDomains: ["theverge.com", "techcrunch.com", "hackeread.com", "dev.to"],
+      excludeDomains: ["theverge.com", "techcrunch.com", "hackeread.com", "dev.to"],
       category: "news",
     });
     return result.results || [];
@@ -65,7 +65,7 @@ async function tweetSearch() {
       numResults: 30,
       text: true,
       summary: true,
-      includeDomains: ["theverge.com", "techcrunch.com", "hackeread.com", "dev.to"],
+      excludeDomains: ["theverge.com", "techcrunch.com", "hackeread.com", "dev.to"],
       category: "tweet",
     });
     return result.results || [];
@@ -83,7 +83,7 @@ async function blogpostSearch() {
       numResults: 30,
       text: true,
       summary: true,
-      includeDomains: ["theverge.com", "techcrunch.com", "hackeread.com", "dev.to"],
+      excludeDomains: ["theverge.com", "techcrunch.com", "hackeread.com", "dev.to"],
       category: "blog post",
     });
     return result.results || [];
