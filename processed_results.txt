@@ -1,0 +1,44 @@
+Here are the filtered and categorized articles based on your criteria:
+
+### Useful for Developers
+1. **Google’s Whisk AI generator** 
+   - Category: Developer-related
+   - Summary: Google released Whisk, an image generation tool using images as prompts instead of text, powered by Imagen 3. It's designed for rapid visual exploration, allowing users to remix existing images to create new ones.
+   - Available: Yes
+
+2. **SearchGPT Rolling Out to All OpenAI Users Starting Today**
+   - Category: Developer-related
+   - Summary: OpenAI has released SearchGPT to all ChatGPT users, offering improved AI-powered searches with faster, mobile-optimized functionalities and real-time web search integration.
+   - Available: Yes
+
+3. **Microsoft Announces Phi-4 AI Model**
+   - Category: Developer-related
+   - Summary: Microsoft announced Phi-4, a 14-billion parameter AI model designed for complex reasoning tasks, available on Azure AI Foundry.
+   - Available: Yes
+
+### Relevant for Business Owners or Work Professionals
+1. **Meta updates its smart glasses with real-time AI video**
+   - Category: Consumer-related
+   - Summary: Meta's Ray-Ban Meta smart glasses received an update with real-time AI video capabilities and live translation, enhancing user interactivity.
+   - Available: Yes
+
+2. **HEALWELL to Acquire Orion Health**
+   - Category: Business-related
+   - Summary: HEALWELL AI's acquisition of Orion Health enhances its healthcare data interoperability and AI capabilities, expanding its global reach.
+   - Available: Yes
+
+3. **ChatGPT Search is now available to everyone for free**
+   - Category: Business-related
+   - Summary: OpenAI has made ChatGPT Search available to all users, integrating real-time web search capabilities directly into ChatGPT.
+   - Available: Yes
+
+### Categorized as Developer-Related vs Consumer-Related
+- **Developer-Related:**
+  - Google’s Whisk AI generator
+  - SearchGPT Rolling Out to All OpenAI Users Starting Today
+  - Microsoft Announces Phi-4 AI Model
+
+- **Consumer-Related:**
+  - Meta updates its smart glasses with real-time AI video
+
+These articles were selected based on their relevance to developers and business professionals, their availability for use, and the exclusion of repeated updates.

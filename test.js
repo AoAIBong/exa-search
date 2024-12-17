@@ -52,7 +52,7 @@ async function fullSearch() {
     const result = await exa.searchAndContents("Latest AI updates released today", {
       type: "neural",
       useAutoprompt: true,
-      numResults: 5,
+      numResults: 10,
       text: true,
       summary: true,
     });
@@ -68,7 +68,7 @@ async function domainSearch() {
     const result = await exa.searchAndContents("Latest AI updates released today", {
       type: "neural",
       useAutoprompt: true,
-      numResults: 5,
+      numResults: 10,
       text: true,
       summary: true,
       includeDomains: ["theverge.com", "techcrunch.com", "hackeread.com", "dev.to"],
@@ -85,7 +85,7 @@ async function newsSearch() {
     const result = await exa.searchAndContents("Latest AI updates released today", {
       type: "neural",
       useAutoprompt: true,
-      numResults: 5,
+      numResults: 10,
       text: true,
       summary: true,
       excludeDomains: ["theverge.com", "techcrunch.com", "hackeread.com", "dev.to"],
@@ -103,7 +103,7 @@ async function tweetSearch() {
     const result = await exa.searchAndContents("Latest AI updates released today", {
       type: "neural",
       useAutoprompt: true,
-      numResults: 5,
+      numResults: 10,
       text: true,
       summary: true,
       excludeDomains: ["theverge.com", "techcrunch.com", "hackeread.com", "dev.to"],
@@ -121,7 +121,7 @@ async function blogpostSearch() {
     const result = await exa.searchAndContents("Latest AI updates released today", {
       type: "neural",
       useAutoprompt: true,
-      numResults: 5,
+      numResults: 10,
       text: true,
       summary: true,
       excludeDomains: ["theverge.com", "techcrunch.com", "hackeread.com", "dev.to"],
@@ -184,24 +184,36 @@ async function getUniqueResults() {
 }
 
 async function processFilteredNews(filePath = 'filtered_news.json') {
-    try {
-        if (!fs.existsSync(filePath)) {
-            console.error(`File ${filePath} does not exist.`);
-            return;
-        }
+  try {
+      if (!fs.existsSync(filePath)) {
+          console.error(`File ${filePath} does not exist.`);
+          return;
+      }
 
-        const fileContent = await fs.promises.readFile(filePath, 'utf-8');
-        const parsedContent = JSON.parse(fileContent);
+      const fileContent = await fs.promises.readFile(filePath, 'utf-8');
+      let parsedContent;
 
-        const processedResults = await processWithChatGPT(parsedContent);
-        console.log("Processed results with ChatGPT:", JSON.stringify(processedResults, null, 2));
+      try {
+          parsedContent = JSON.parse(fileContent);
+      } catch (parseError) {
+          console.error("Invalid JSON format in the input file. Exiting.");
+          return;
+      }
 
-        await fs.promises.writeFile('processed_results.json', JSON.stringify(processedResults, null, 2), 'utf-8');
-        console.log("Processed results saved to 'processed_results.json'.");
-    } catch (error) {
-        console.error("Error processing filtered news:", error);
-    }
+      const processedResults = await processWithChatGPT(parsedContent);
+
+      // Ensure processed results are treated as a valid string
+      const resultsText = typeof processedResults === 'string' ? processedResults : JSON.stringify(processedResults, null, 2);
+
+      // Write the formatted output to a text file
+      await fs.promises.writeFile('processed_results.txt', resultsText, 'utf-8');
+      console.log("Processed results saved to 'processed_results.txt'.");
+  } catch (error) {
+      console.error("Error processing filtered news:", error);
+  }
 }
+
+
 
 (async function () {
     try {
